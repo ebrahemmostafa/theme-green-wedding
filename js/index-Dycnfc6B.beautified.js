@@ -27542,6 +27542,40 @@ END:VCALENDAR`,
         }, []), u = w.useCallback(() => {
             n(!1)
         }, []);
+        // Auto-scroll: after 3s with no manual interaction, glide down slowly.
+        // Any wheel/touch/key/mouse input pauses it; it resumes after another 3s idle.
+        w.useEffect(() => {
+            if (e || r) return;
+            const IDLE_MS = 3e3, SPEED = 60;
+            let idleTimer = null, raf = null, last = 0, pos = 0;
+            const isTyping = () => {
+                const a = document.activeElement;
+                return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable)
+            }, atBottom = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2,
+            step = now => {
+                if (isTyping() || atBottom()) { raf = null; return }
+                const dt = last ? Math.min(now - last, 500) : 0;
+                last = now;
+                pos += SPEED * dt / 1e3;
+                window.scrollTo(0, pos);
+                raf = requestAnimationFrame(step)
+            }, start = () => {
+                if (isTyping() || atBottom()) { schedule(); return }
+                pos = window.scrollY, last = 0;
+                raf = requestAnimationFrame(step)
+            }, stop = () => {
+                raf && cancelAnimationFrame(raf), raf = null
+            }, schedule = () => {
+                clearTimeout(idleTimer), idleTimer = setTimeout(start, IDLE_MS)
+            }, onUser = () => {
+                stop(), schedule()
+            }, evs = ["wheel", "touchstart", "touchmove", "keydown", "mousedown"];
+            evs.forEach(v => window.addEventListener(v, onUser, { passive: !0 }));
+            schedule();
+            return () => {
+                stop(), clearTimeout(idleTimer), evs.forEach(v => window.removeEventListener(v, onUser))
+            }
+        }, [e, r]);
         return g.jsxs("div", {
             className: "min-h-screen",
             children: [e && g.jsx(CA, {
