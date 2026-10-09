@@ -27546,7 +27546,7 @@ END:VCALENDAR`,
         // Any wheel/touch/key/mouse input pauses it; it resumes after another 3s idle.
         w.useEffect(() => {
             if (e || r) return;
-            const IDLE_MS = 3e3, SPEED = 60;
+            const IDLE_MS = 3e3, SPEED = 90;
             let idleTimer = null, raf = null, last = 0, pos = 0;
             const isTyping = () => {
                 const a = document.activeElement;
